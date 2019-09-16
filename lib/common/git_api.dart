@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:dio/dio.dart';
@@ -29,23 +30,38 @@ class Git {
     dio.interceptors.add(Global.netCache);
     //设置 用户token  可能为 null 代表未登录
     dio.options.headers[HttpHeaders.authorizationHeader] = Global.profile.token;
-
-    //在  调试模式下  需要抓包 进行调试   并禁用代理HTTPS证书校验
-    if (!Global.isRelease) {
-      (dio.httpClientAdapter as DefaultHttpClientAdapter).onHttpClientCreate =
-          (client) {
-        client.findProxy = (uri) {
-          return "PROXY 10.1.10.250:8888";
-        };
-        //代理  工具会自动提供一个抓包的 自签名证书  会通不过证书校验  所以我们禁用证书校验
-        client.badCertificateCallback =
-            (X509Certificate cert, String host, int port) => true;
-      };
-    }
   }
 
-  //登录 接口   登录成功后返回  用户信息：
-  Future<User> login(String login,String pwd) {
-//      String basic =
+  // TODO  登录 接口   登录成功后返回  用户信息：===================================
+  Future<User> login(String login, String pwd) async {
+    login = "zqHero";
+    pwd = "zq229457269";
+
+    String basic = 'Basic ' + base64.encode(utf8.encode('$login:$pwd'));
+    var r = await dio.get(
+      "/users/$login",
+      options: options.merge(headers: {
+        HttpHeaders.authorizationHeader: basic
+      }, extra: {
+        "noCache": true, //本接口禁用缓存
+      }),
+    );
+    //登录成功后更新公共头（authorization），此后的所有请求都会带上用户身份信息
+    dio.options.headers[HttpHeaders.authorizationHeader] = basic;
+    Global.netCache.cache.clear(); //清空所有缓存
+    Global.profile.token = basic; //更新profile中的token信息
+    return User.fromJson(r.data);
+  }
+
+  // TODO  获取用户  仓库列表 ：
+  Future<List<Repo>> getRepos(
+      {Map<String, dynamic> queryParameters, refresh = false}) async {
+    if (refresh) {
+      //列表下拉刷新   需要删除缓存
+      options.extra.addAll({"refresh": true, "list": true});
+    }
+    var r = await dio.get<List>("user/repos",
+        queryParameters: queryParameters, options: options);
+    return r.data.map((e) => Repo.fromJson(e)).toList();
   }
 }

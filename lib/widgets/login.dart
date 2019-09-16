@@ -83,15 +83,37 @@ class LoginState extends State<LoginRoute> {
   void onClickLogin() async {
     //验证  输入内容是否合法;
     showLoading(context);
-
     User user;
 
-    user = await Git(context)
-        .login("zqHero", "zq229457269");
-    // 因为登录页返回后，首页会build，所以我们传false，更新user后不触发更新
-    Provider.of<UserModel>(context, listen: false).user = user;
-
+    try {
+      user = await Git(context).login("zqHero", "zq229457269");
+      // 因为登录页返回后，首页会build，所以我们传false，更新user后不触发更新
+      Provider.of<UserModel>(context, listen: false).user = user;
+    } catch (e) {
+//      showToast(e.toString());
+    } finally {
+      Navigator.of(context).pop(); //隐藏loading
+    }
+    if(user!=null){
+      // 返回
+      Navigator.of(context).pop();
+    }
+    print("==================${user.toJson()}");
   }
+
+//  void showToast(String text, {
+//    gravity: ToastGravity.CENTER,
+//    toastLength: Toast.LENGTH_SHORT,
+//  }) {
+//    Fluttertoast.showToast(
+//      msg: text,
+//      toastLength: Toast.LENGTH_SHORT,
+//      gravity: ToastGravity.BOTTOM,
+//      timeInSecForIos: 1,
+//      backgroundColor: Colors.grey[600],
+//      fontSize: 16.0,
+//    );
+//  }
 
   /**
    * 展示一个  loading

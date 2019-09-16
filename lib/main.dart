@@ -21,32 +21,31 @@ class MyApp extends StatelessWidget {
       child: Consumer2<ThemeModel, LocaleModel>(
         builder: (BuildContext context, themeModel, localModel, Widget child) {
           return MaterialApp(
-            theme: ThemeData(primarySwatch: Colors.blue),
+            theme: ThemeData(platform: TargetPlatform.iOS, primarySwatch: themeModel.theme),
             onGenerateTitle: (context) {
               return "默认标题";
             },
             home: HomePage(),
+
             //初始化界面
-            locale: localModel.getLocale(),
-
-            //语言适配
-            supportedLocales: [
-              const Locale('en', 'US'),
-              const Locale('zh', 'CN')
-            ],
-
-            localizationsDelegates: [
-              //本地语言国际化的  代理类
-              // 本地化的代理类
-              GlobalMaterialLocalizations.delegate,
-              GlobalWidgetsLocalizations.delegate,
-//              GmLocalizationsDelegate()
-            ],
+//            locale: localModel.getLocale(),
+//            //语言适配
+//            supportedLocales: [
+//              const Locale('en', 'US'),
+//              const Locale('zh', 'CN')
+//            ],
+//            localizationsDelegates: [
+//              //本地语言国际化的  代理类
+//              // 本地化的代理类
+//              GlobalMaterialLocalizations.delegate,
+//              GlobalWidgetsLocalizations.delegate,
+////              GmLocalizationsDelegate()
+//            ],
 
             //注册路由表：
             routes: <String, WidgetBuilder>{
               "login": (context) => LoginRoute(),
-//              "login": (context) => LoginRoute(),
+              "themes": (context) => ThemeRoute(),
 //              "login":(context) => LoginRoute(),
             },
           );
