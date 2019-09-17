@@ -2,12 +2,10 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttergit_pro/common/exports_commones.dart';
-import 'package:fluttergit_pro/models/allentities_exports.dart';
 import 'package:fluttergit_pro/states/allstates_exports.dart';
-import 'package:fluttergit_pro/widgets/routes.dart';
+import 'package:fluttergit_pro/widgets/bloc_/bloc_page.dart';
 import 'package:provider/provider.dart';
-
-import 'package:flukit/flukit.dart';
+import 'git_/git_list.dart';
 
 // ignore: slash_for_doc_comments
 /**
@@ -18,7 +16,15 @@ class HomePage extends StatefulWidget {
   State<StatefulWidget> createState() => new HomePageState();
 }
 
+List<BottomNavigationBarItem> items = <BottomNavigationBarItem>[
+  new BottomNavigationBarItem(title: new Text("Git"), icon: Icon(Icons.home)),
+  new BottomNavigationBarItem(title: new Text("Bloc"), icon: Icon(Icons.lock)),
+  new BottomNavigationBarItem(title: new Text("Git"), icon: Icon(Icons.info)),
+];
+
 class HomePageState extends State<HomePage> {
+  int _index = 0;
+
   @override
   Widget build(BuildContext context) {
     // TODO: implement build
@@ -26,7 +32,17 @@ class HomePageState extends State<HomePage> {
       appBar: new AppBar(
         title: new Text("Git"),
       ),
-      body: createBodyWidget(), //构建主界面
+      body: getCurrentBodyView(),
+//      createBodyWidget(), //构建主界面
+      bottomNavigationBar: BottomNavigationBar(
+        currentIndex: _index,
+        items: items,
+        onTap: (index) {
+          setState(() {
+            _index = index;
+          });
+        },
+      ),
       drawer: Drawer(
         child: MediaQuery.removePadding(
             context: context,
@@ -39,39 +55,6 @@ class HomePageState extends State<HomePage> {
             )),
       ), //抽屉菜单
     );
-  }
-
-  /**
-   * 创建一个 主界面 组件
-   */
-  Widget createBodyWidget() {
-    UserModel userModel = Provider.of<UserModel>(context);
-    if (!userModel.isLogin) {
-      //未登录  显示一个登录  按钮
-      return Center(
-        child: RaisedButton(
-          child: Text("去登录"),
-          onPressed: () => {Navigator.of(context).pushNamed("login")},
-        ),
-      );
-    } else {
-      return InfiniteListView<Repo>(
-        onRetrieveData: (int page, List<Repo> items, bool refresh) async {
-          //刷新数据
-          var data =
-              await Git(context).getRepos(refresh: refresh, queryParameters: {
-            'page': page,
-            'page_size': 10,
-          });
-          //添加 请求到的数据 添加到items 中
-          items.addAll(data);
-          return data.length > 0 && data.length % 10 == 0;
-        },
-        itemBuilder: (List list, int index, BuildContext ctx) {
-          return RepoItem(list[index]);
-        },
-      );
-    }
   }
 
   /**
@@ -189,5 +172,17 @@ class HomePageState extends State<HomePage> {
             ],
           );
         });
+  }
+
+  //获取  当前  bodyView
+  Widget getCurrentBodyView() {
+    switch (_index) {
+      case 0:
+        return new GitProListPage();
+      case 1:
+        return new BlocPage();
+      case 2:
+        return new Center();
+    }
   }
 }
